@@ -1,29 +1,259 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <title>Calculator</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calculator-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+
+        h2 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .operation-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 25px 0;
+        }
+
+        .operation-btn {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #555;
+        }
+
+        .operation-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .operation-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .result-container {
+            margin-top: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .result-container.show {
+            display: block;
+        }
+
+        .result-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            color: white;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+    </style>
 </head>
-
 <body>
-    <h2>Simple Calculator</h2>
-    <form method="POST">
-        <input type="text" name="num1" placeholder="Enter first number" required>
-        <input type="text" name="num2" placeholder="Enter second number" required>
-        <br><br>
-        <select name="operation">
-            <option value="Add">Add</option>
-            <option value="Subtract">Subtract</option>
-            <option value="Multiply">Multiply</option>
-            <option value="Divide">Divide</option>
-        </select>
-        <br><br>
-        <button type="submit">Calculate</button>
-    </form>
+    <div class="calculator-container">
+        <h2>Interactive Calculator</h2>
+        
+        <div class="input-group">
+            <input type="text" id="num1" placeholder="Enter first number" />
+        </div>
+        
+        <div class="input-group">
+            <input type="text" id="num2" placeholder="Enter second number" />
+        </div>
+        
+        <div class="operation-buttons">
+            <button class="operation-btn active" data-operation="add">+ Add</button>
+            <button class="operation-btn" data-operation="subtract">− Subtract</button>
+            <button class="operation-btn" data-operation="multiply">× Multiply</button>
+            <button class="operation-btn" data-operation="divide">÷ Divide</button>
+        </div>
+        
+        <button class="calculate-btn" onclick="calculate()">Calculate</button>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="result-container" id="result">
+            <div class="result-label">Result</div>
+            <div class="result-value" id="resultValue">0</div>
+        </div>
+    </div>
 
-    {% if result != '' %}
-    <h3>Result: {{ result }}</h3>
-    {% endif %}
+    <script>
+        let selectedOperation = 'add';
+        
+        // Handle operation button clicks
+        document.querySelectorAll('.operation-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.operation-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                selectedOperation = this.dataset.operation;
+            });
+        });
+        
+        // Calculate function
+        function calculate() {
+            const num1 = parseFloat(document.getElementById('num1').value);
+            const num2 = parseFloat(document.getElementById('num2').value);
+            const errorDiv = document.getElementById('error');
+            const resultDiv = document.getElementById('result');
+            const resultValue = document.getElementById('resultValue');
+            
+            errorDiv.classList.remove('show');
+            
+            if (isNaN(num1) || isNaN(num2)) {
+                errorDiv.textContent = 'Please enter valid numbers';
+                errorDiv.classList.add('show');
+                resultDiv.classList.remove('show');
+                return;
+            }
+            
+            let result;
+            
+            switch(selectedOperation) {
+                case 'add':
+                    result = num1 + num2;
+                    break;
+                case 'subtract':
+                    result = num1 - num2;
+                    break;
+                case 'multiply':
+                    result = num1 * num2;
+                    break;
+                case 'divide':
+                    if (num2 === 0) {
+                        errorDiv.textContent = 'Cannot divide by zero';
+                        errorDiv.classList.add('show');
+                        resultDiv.classList.remove('show');
+                        return;
+                    }
+                    result = num1 / num2;
+                    break;
+            }
+            
+            resultValue.textContent = result.toFixed(2);
+            resultDiv.classList.add('show');
+        }
+        
+        // Allow Enter key to calculate
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    calculate();
+                }
+            });
+        });
+    </script>
 </body>
-
 </html>
